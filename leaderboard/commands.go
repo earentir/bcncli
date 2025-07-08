@@ -1,4 +1,3 @@
-// File: leaderboard/commands.go
 package leaderboard
 
 import (
@@ -23,15 +22,15 @@ func init() {
 	userCmd.Flags().IntP("itemId", "i", 0, "Item ID (required if --lbType=item)")
 	userCmd.Flags().IntP("page", "p", 1, "Page number")
 	userCmd.MarkFlagRequired("lbType")
-	userCmd.MarkFlagRequired("page")
+	// userCmd.MarkFlagRequired("page")
 
 	factionCmd.Flags().StringP("stat", "s", "", "fpDepositedMonthly or fpDepositedTotal")
 	factionCmd.Flags().IntP("page", "p", 1, "Page number")
 	factionCmd.MarkFlagRequired("stat")
-	factionCmd.MarkFlagRequired("page")
+	// factionCmd.MarkFlagRequired("page")
 
 	petsCmd.Flags().IntP("page", "p", 1, "Page number")
-	petsCmd.MarkFlagRequired("page")
+	// petsCmd.MarkFlagRequired("page")
 }
 
 var userCmd = &cobra.Command{
