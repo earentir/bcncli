@@ -1,0 +1,2 @@
+# bcncli
+BConomy cli client
