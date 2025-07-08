@@ -32,3 +32,4 @@ go.work.sum
 # .vscode/
 setenv.sh
 bcncli
+gamedata-items.json
