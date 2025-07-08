@@ -10,6 +10,7 @@ import (
 	"bcncli/egg"
 	"bcncli/faction"
 	"bcncli/leaderboard"
+	"bcncli/logs"
 	"bcncli/market"
 	"bcncli/pet"
 	"bcncli/profile"
@@ -42,6 +43,7 @@ func main() {
 	rootCmd.AddCommand(faction.Cmd)
 	rootCmd.AddCommand(market.Cmd)
 	rootCmd.AddCommand(leaderboard.Cmd)
+	rootCmd.AddCommand(logs.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
