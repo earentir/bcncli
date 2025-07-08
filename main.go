@@ -15,6 +15,7 @@ import (
 	"bcncli/market"
 	"bcncli/pet"
 	"bcncli/profile"
+	"bcncli/search"
 )
 
 func main() {
@@ -46,6 +47,7 @@ func main() {
 	rootCmd.AddCommand(leaderboard.Cmd)
 	rootCmd.AddCommand(logs.Cmd)
 	rootCmd.AddCommand(gamedata.Cmd)
+	rootCmd.AddCommand(search.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
