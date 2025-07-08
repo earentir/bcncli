@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"bcncli/.trunk/gamedata"
 	"bcncli/egg"
 	"bcncli/faction"
 	"bcncli/leaderboard"
@@ -44,6 +45,7 @@ func main() {
 	rootCmd.AddCommand(market.Cmd)
 	rootCmd.AddCommand(leaderboard.Cmd)
 	rootCmd.AddCommand(logs.Cmd)
+	rootCmd.AddCommand(gamedata.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
