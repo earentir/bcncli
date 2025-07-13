@@ -33,3 +33,4 @@ go.work.sum
 setenv.sh
 bcncli
 gamedata-items.json
+itemid.json
