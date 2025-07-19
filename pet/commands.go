@@ -176,7 +176,7 @@ var ownedCmd = &cobra.Command{
 					fmt.Fprintf(w, "%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%s\n",
 						p.ID, p.Name, p.Species, p.Tier, p.XP,
 						p.AdventureType, p.LifetimeItemsFound,
-						p.AdventureBoost.Multiplier, client.EpochToISO8601(p.AdventureBoost.EndTime))
+						p.AdventureBoost.Multiplier, common.EpochToISO8601(p.AdventureBoost.EndTime))
 				}
 				w.Flush()
 				fmt.Println()
@@ -191,7 +191,7 @@ var ownedCmd = &cobra.Command{
 			fmt.Fprintf(w, "%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%s\n",
 				p.ID, p.Name, p.Species, p.Tier, p.XP,
 				p.AdventureType, p.LifetimeItemsFound,
-				p.AdventureBoost.Multiplier, client.EpochToISO8601(p.AdventureBoost.EndTime))
+				p.AdventureBoost.Multiplier, common.EpochToISO8601(p.AdventureBoost.EndTime))
 		}
 		w.Flush()
 	},
