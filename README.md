@@ -1,112 +1,167 @@
-# bcncli
+# **bcncli**
 
-BConomy CLI client
+[![Go Version](https://img.shields.io/badge/go-1.24.2-blue?logo=go)](https://go.dev/) [![License](https://img.shields.io/badge/license-GPL--2.0-blue)](LICENSE) [![Build](https://img.shields.io/github/actions/workflow/status/earentir/bcncli/ci.yml?label=CI)](https://github.com/earentir/bcncli/actions)
 
-`bcncli` is a command-line interface for interacting with the BConomy game API. It allows you to get information about pets, eggs, profiles, factions, market trades, leaderboards, logs, and game data directly from your terminal.
+A fast, ergonomic command‑line client for the **[BConomy](https://bconomy.net)** game API. `bcncli` lets you fetch information about pets, eggs, factions, market, and more — all without leaving your terminal.
 
-## Features
-Retrieve information about
-* Pets
-* Eggs
-* User profiles
-* Faction details
-* Market
-* Leaderboards
-* Logs
-* Download game data
-* Search game data
+---
 
-## Requirements
+## Table of Contents
 
-* Go 1.24.2 or later
+* [Features](#features)
+* [Quick Start](#quick-start)
 
-## Installation
+  * [Installation](#installation)
+  * [Configuration](#configuration)
+* [Command Reference](#command-reference)
+* [Examples](#examples)
+* [Building from Source](#building-from-source)
+* [Shell Completions](#shell-completions)
+* [Contributing](#contributing)
+* [Roadmap](#roadmap)
+* [License](#license)
 
-Ensure you have Go installed and your `GOPATH/bin` is in your `PATH`:
+---
 
-```bash
-go install github.com/earentir/bcncli@latest
-```
+## Features
 
-## Configuration
+| Area             | What you can do                                     |
+| ---------------- | --------------------------------------------------- |
+| **Pets**         | List your pets                                      |
+| **Eggs**         | List eggs and inspect their metadata                |
+| **Profiles**     | View any player profile by ID                       |
+| **Factions**     | Get faction stats and member lists                  |
+| **Market**       | Browse live listings and filter by category         |
+| **Leaderboards** | Check rankings for players or factions              |
+| **Logs**         | Tail or export the global event log                 |
+| **Game Data**    | Download full static datasets for offline crunching |
+| **Search**       | Run full‑text searches across any game resource     |
+| ---------------- | --------------------------------------------------- |
 
-`bcncli` requires your BConomy API key. You can provide it in three ways:
+`bcncli` is built with [Cobra](https://github.com/spf13/cobra) and [Viper](https://github.com/spf13/viper), so you get familiar flag handling, config files, and shell completions out of the box.
 
-1. **Flag**: `--apikey YOUR_API_KEY`
-2. **Environment Variable**: `export BCONOMYAPI=YOUR_API_KEY`
-3. **Config File**: Create a `config.json` in the current directory:
+---
 
-   ```json
-   {
-     "apikey": "YOUR_API_KEY_HERE"
-   }
-   ```
+## Quick Start
 
-Note: `bcncli` uses [Viper](https://github.com/spf13/viper) for configuration management and will read `config.(json|yaml|toml|...)` if present.
+### Installation
 
-## Usage
-
-```bash
-bcncli [--apikey YOUR_API_KEY] <command> [flags]
-```
-
-* Run `bcncli --help` to list all commands.
-* Run `bcncli <command> --help` to see flags and options for a specific command.
-
-### Available Commands
-
-| Command       | 
-| ------------- | 
-| `pet`         | 
-| `egg`         | 
-| `profile`     | 
-| `faction`     | 
-| `market`      | 
-| `leaderboard` | 
-| `logs`        | 
-| `gamedata`    | 
-| `search`      | 
-
-### Examples
+With Go >= 1.24.2 on your PATH:
 
 ```bash
-# Show your profile
-bcncli profile show --user 12345
-
-# List your pets
-bcncli pet list
-
-# Hatch an egg by ID
-bcncli egg hatch --id 67890
-
-# View market listings in "potions" category
-bcncli market list --category "potions"
-
-# View top 10 players
-bcncli leaderboard list --limit 10
-
-# Fetch recent logs
-bcncli logs list --limit 20
-
-# Export game data to JSON
-bcncli gamedata export --output game_data.json
-
-# Search game data for quests
-bcncli search quests --query "Dragon Hunt"
+# Install the latest tagged binary
+$ go install github.com/earentir/bcncli@latest
 ```
 
-*Note: Replace command examples with actual subcommand names and flags; use `--help` to discover available options.*
+→ The compiled executable will land in `$(go env GOPATH)/bin`. Make sure that directory is in your `PATH`.
 
-## Contributing
+### Configuration
 
-Contributions are welcome! Please:
+Every request to the BConomy API needs an **API key**. `bcncli` will look for it in the following order (first win):
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/fooBar`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/fooBar`)
-5. Open a pull request
+1. `--apikey` flag 
+2. `BCONOMYAPI` environment variable 
 
-## License
+> **Tip:**  you can also set the `BCONOMYAPI` environment variable in your shell profile (e.g., `.bashrc`, `.zshrc`) to avoid passing the API key every time.
+```bash
+export BCONOMYAPI={APIKEYHERE}
+```
 
-This project is licensed under the [GPL-2.0 License](./LICENSE).
+> **Tip:**  you can also add it to a script then make it exec and finally just source it each time for the current session:
+
+```bash
+cat <<< "export BCONOMYAPI={APIKEYHERE}" > env.sh; chmod +x env.sh
+source ./env.sh
+```
+
+---
+
+## Command Reference
+
+```text
+Usage:  bcncli [flags] <command>
+```
+
+| Command       | Description                          |
+| ------------- | ------------------------------------ |
+| `pet`         | Show or list your pets               |
+| `egg`         | Hatch eggs and view egg info         |
+| `profile`     | Display a player profile             |
+| `faction`     | Inspect factions                     |
+| `market`      | List market offers with rich filters |
+| `leaderboard` | Show top players/factions            |
+| `logs`        | Stream or download server logs       |
+| `gamedata`    | Export BConomy static data           |
+| `search`      | Free‑text search across resources    |
+
+Run `bcncli <command> --help` for the full tree of sub‑commands and options.
+
+---
+
+## Examples
+
+| Task                            | Command                                          |
+| ------------------------------- | ------------------------------------------------ |
+| Show your own profile           | `bcncli profile show --user 12345`               |
+| List your pets                  | `bcncli pet list`                                |
+| Hatch an egg                    | `bcncli egg hatch --id 67890`                    |
+| View potion listings            | `bcncli market list --category "potions"`        |
+| Top 10 players                  | `bcncli leaderboard list --limit 10`             |
+| Last 20 logs                    | `bcncli logs list --limit 20`                    |
+| Export all game data            | `bcncli gamedata export --output game_data.json` |
+| Search quests for “Dragon Hunt” | `bcncli search quests --query "Dragon Hunt"`     |
+
+---
+
+## Building from Source
+
+```bash
+# Clone and build
+$ git clone https://github.com/earentir/bcncli.git
+$ cd bcncli
+$ go build
+```
+
+The resulting `bcncli` binary is completely static and has **zero runtime dependencies** – ship it anywhere.
+
+---
+
+## Shell Completions
+
+Generate shell completions and drop them somewhere on your `PATH`:
+
+```bash
+# Bash
+$ bcncli completion bash > /etc/bash_completion.d/bcncli
+
+# Zsh
+$ bcncli completion zsh > "${fpath[1]}/_bcncli"
+```
+
+Fish and PowerShell completions are also supported – see `bcncli completion --help`.
+
+---
+
+## Contributing
+
+1. Fork this repo and create a feature branch (`git checkout -b feature/my-awesome-thing`)
+2. Commit your changes (`git commit -am 'Add awesome thing'`)
+3. Push and open a pull request – don’t forget to run `go test ./...` and `go vet ./...` first
+
+We ❤️ issues and PRs – even small docs tweaks help.
+
+---
+
+## Roadmap
+
+* [ ] Finish all the commands
+* [ ] Native JSON/CSV output selectors (`--output-format`)
+* [ ] CI pipeline with automated builds for Windows/macOS/Linux
+
+Want something else? Open an [issue](https://github.com/earentir/bcncli/issues) and let us know.
+
+---
+
+## License
+
+`bcncli` is released under the [GNU General Public License v2.0](LICENSE).
