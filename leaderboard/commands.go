@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"bcncli/client"
+	"bcncli/common"
 
 	"github.com/spf13/cobra"
 )
@@ -65,7 +66,7 @@ var userCmd = &cobra.Command{
 		}
 
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -83,7 +84,7 @@ var factionCmd = &cobra.Command{
 		}
 
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -99,6 +100,6 @@ var petsCmd = &cobra.Command{
 		}
 
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }

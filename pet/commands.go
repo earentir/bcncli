@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"bcncli/client"
+	"bcncli/common"
 
 	"github.com/spf13/cobra"
 )
@@ -71,10 +72,10 @@ var infoCmd = &cobra.Command{
 	Short: "Fetch pet info",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "pet", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -83,7 +84,7 @@ var ownedCmd = &cobra.Command{
 	Short: "List pets for a user",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		userId := client.ParseID(args[0])
+		userId := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "userPetsAndEggs", "id": userId}
 		raw := client.FetchDataOrExit(payload)
 
@@ -96,7 +97,7 @@ var ownedCmd = &cobra.Command{
 
 		// Debug JSON
 		if debug, _ := cmd.Flags().GetBool("debug"); debug {
-			client.PrintJSON(resp["pets"])
+			common.PrintJSON(resp["pets"])
 			return
 		}
 
@@ -202,10 +203,10 @@ var offspringCmd = &cobra.Command{
 	Short: "Fetch offspring",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "petOffspring", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 

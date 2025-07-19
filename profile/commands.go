@@ -2,6 +2,7 @@ package profile
 
 import (
 	"bcncli/client"
+	"bcncli/common"
 
 	"github.com/spf13/cobra"
 )
@@ -20,10 +21,10 @@ var infoCmd = &cobra.Command{
 	Short: "Fetch profile info",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "profile", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -32,10 +33,10 @@ var userCmd = &cobra.Command{
 	Short: "Fetch user details",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "user", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -44,10 +45,10 @@ var inventoryCmd = &cobra.Command{
 	Short: "Fetch inventory",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "inventory", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -56,10 +57,10 @@ var flatinventoryCmd = &cobra.Command{
 	Short: "Fetch flat inventory",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "flatInventory", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -68,10 +69,10 @@ var statsCmd = &cobra.Command{
 	Short: "Fetch stats",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "stats", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -80,9 +81,9 @@ var trophiesCmd = &cobra.Command{
 	Short: "Fetch trophies",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "trophies", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }

@@ -3,6 +3,7 @@ package search
 
 import (
 	"bcncli/client"
+	"bcncli/common"
 
 	"github.com/spf13/cobra"
 )
@@ -35,7 +36,7 @@ var userCmd = &cobra.Command{
 			"query": query,
 		}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -51,7 +52,7 @@ var factionCmd = &cobra.Command{
 			"query": query,
 		}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -73,6 +74,6 @@ var petCmd = &cobra.Command{
 			"rawNameQuery": name,
 		}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }

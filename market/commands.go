@@ -1,3 +1,4 @@
+// Package market provides commands to interact with the marketplace.
 package market
 
 import (
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+
+	"bcncli/common"
 
 	"github.com/spf13/cobra"
 )
@@ -27,22 +30,6 @@ type Listing struct {
 type OverviewResponse struct {
 	LastUpdated int64            `json:"lastUpdated"`
 	Data        map[string]int64 `json:"data"`
-}
-
-// Item represents an entry from itemid.json, with every field included.
-type Item struct {
-	Name        string        `json:"name"`
-	Emoji       string        `json:"emoji"`
-	IDName      string        `json:"idName"`
-	Uncraftable bool          `json:"uncraftable"`
-	Attributes  []string      `json:"attributes"`
-	LootSources []string      `json:"lootSources"`
-	Recipe      []interface{} `json:"recipe"`
-	ID          int           `json:"id"`
-	FlatID      string        `json:"flatId"`
-	Cost        int64         `json:"cost"`
-	UsedToCraft []interface{} `json:"usedToCraft"`
-	ImageURL    string        `json:"imageUrl"`
 }
 
 // Cmd is the root command for market operations
@@ -72,7 +59,7 @@ var overviewCmd = &cobra.Command{
 
 		// 2) if --debug, just dump JSON
 		if debug {
-			client.PrintJSON(raw)
+			common.PrintJSON(raw)
 			return
 		}
 
@@ -84,7 +71,12 @@ var overviewCmd = &cobra.Command{
 		}
 
 		// 4) load items and build name lookup
-		items := loadItems()
+		items, err := common.LoadItemData("itemid.json", 300)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "could not load items: %v\n", err)
+			os.Exit(1)
+		}
+
 		nameByID := make(map[int]string, len(items))
 		for _, it := range items {
 			nameByID[it.ID] = it.Name
@@ -129,7 +121,7 @@ var overviewCmd = &cobra.Command{
 		w := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
 		fmt.Fprintln(w, "ITEM\tVALUE")
 		for _, r := range rows {
-			fmt.Fprintf(w, "%s (%d)\t%s\n", r.Name, r.ID, formatPrice(r.Value))
+			fmt.Fprintf(w, "%s (%d)\t%s\n", r.Name, r.ID, common.FormatPrice(r.Value))
 		}
 		w.Flush()
 	},
@@ -142,12 +134,12 @@ var itemCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		debug, _ := cmd.Flags().GetBool("debug")
-		itemId := client.ParseID(args[0])
-		payload := map[string]interface{}{"type": "marketListings", "itemId": itemId}
+		itemID := common.ParseID(args[0])
+		payload := map[string]interface{}{"type": "marketListings", "itemId": itemID}
 		raw := client.FetchDataOrExit(payload)
 
 		if debug {
-			client.PrintJSON(raw)
+			common.PrintJSON(raw)
 			return
 		}
 
@@ -157,7 +149,12 @@ var itemCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		items := loadItems()
+		items, err := common.LoadItemData("itemid.json", 300)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "could not load items: %v\n", err)
+			os.Exit(1)
+		}
+
 		nameByID := make(map[int]string, len(items))
 		for _, it := range items {
 			nameByID[it.ID] = it.Name
@@ -170,7 +167,7 @@ var itemCmd = &cobra.Command{
 			if name == "" {
 				name = fmt.Sprintf("UNKNOWN(%d)", l.ItemID)
 			}
-			fmt.Fprintf(w, "%s (%d)\t%s\t%d\n", name, l.ItemID, formatPrice(l.Price), l.Amount)
+			fmt.Fprintf(w, "%s (%d)\t%s\t%d\n", name, l.ItemID, common.FormatPrice(l.Price), l.Amount)
 		}
 		w.Flush()
 	},
@@ -186,13 +183,13 @@ var userCmd = &cobra.Command{
 		debug, _ := cmd.Flags().GetBool("debug")
 
 		// 2) Fetch raw data:
-		bcId := client.ParseID(args[0])
-		payload := map[string]interface{}{"type": "userMarketListings", "id": bcId}
+		bcID := common.ParseID(args[0])
+		payload := map[string]interface{}{"type": "userMarketListings", "id": bcID}
 		raw := client.FetchDataOrExit(payload)
 
 		// 3) If debug, just dump the raw JSON:
 		if debug {
-			client.PrintJSON(raw)
+			common.PrintJSON(raw)
 			return
 		}
 
@@ -211,7 +208,7 @@ var userCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "could not read itemid.json: %v\n", err)
 			os.Exit(1)
 		}
-		var items []Item
+		var items []common.Item
 		if err := json.Unmarshal(b, &items); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to parse itemid.json: %v\n", err)
 			os.Exit(1)
@@ -230,93 +227,8 @@ var userCmd = &cobra.Command{
 			if !ok {
 				name = fmt.Sprintf("UNKNOWN(%d)", l.ItemID)
 			}
-			fmt.Fprintf(w, "%s (%d)\t%s\t%d\n", name, l.ItemID, formatPrice(l.Price), l.Amount)
+			fmt.Fprintf(w, "%s (%d)\t%s\t%d\n", name, l.ItemID, common.FormatPrice(l.Price), l.Amount)
 		}
 		w.Flush()
 	},
-}
-
-// loadItems reads itemid.json next to the binary and returns all items.
-func loadItems() []Item {
-	exePath, _ := os.Executable()
-	jsonPath := filepath.Join(filepath.Dir(exePath), "itemid.json")
-	data, err := os.ReadFile(jsonPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "could not read itemid.json: %v\n", err)
-		os.Exit(1)
-	}
-	var items []Item
-	if err := json.Unmarshal(data, &items); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to parse itemid.json: %v\n", err)
-		os.Exit(1)
-	}
-	return items
-}
-
-// formatPrice formats n either with units (K, M, B, T) or, if you pass
-// useNum=true, as a plain integer with space separators.
-//
-//	formatNumber(1230000)        == "1.23M"
-//	formatNumber(1000000)        == "1M"
-//	formatNumber(200000000)      == "200M"
-//	formatNumber(123000000000)   == "123B"
-//	formatNumber(123000, true)   == "123 000"
-func formatPrice(n int64, useNum ...bool) string {
-	num := false
-	if len(useNum) > 0 && useNum[0] {
-		num = true
-	}
-
-	// Plain number with spaces
-	if num {
-		s := strconv.FormatInt(n, 10)
-		neg := strings.HasPrefix(s, "-")
-		if neg {
-			s = s[1:]
-		}
-		// group digits in threes
-		var b strings.Builder
-		pre := len(s) % 3
-		if pre == 0 {
-			pre = 3
-		}
-		b.WriteString(s[:pre])
-		for i := pre; i < len(s); i += 3 {
-			b.WriteByte(' ')
-			b.WriteString(s[i : i+3])
-		}
-		out := b.String()
-		if neg {
-			out = "-" + out
-		}
-		return out
-	}
-
-	// Unit thresholds
-	abs := n
-	if abs < 0 {
-		abs = -abs
-	}
-	units := []struct {
-		thresh int64
-		suf    string
-	}{
-		{1e12, "T"},
-		{1e9, "B"},
-		{1e6, "M"},
-		{1e3, "K"},
-	}
-	for _, u := range units {
-		if abs >= u.thresh {
-			v := float64(n) / float64(u.thresh)
-			// two decimals, then trim trailing zeros and dot
-			str := strconv.FormatFloat(v, 'f', 2, 64)
-			str = strings.TrimRight(str, "0")
-			str = strings.TrimRight(str, ".")
-			return str + u.suf
-		}
-	}
-
-	// smaller than 1K: just print it
-	return strconv.FormatInt(n, 10)
 }
