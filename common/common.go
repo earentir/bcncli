@@ -233,3 +233,14 @@ func ParseID(arg string) int {
 	}
 	return id
 }
+
+// EpochToISO8601 converts milliseconds to ISO 8601 format
+func EpochToISO8601(ms int64) string {
+	if ms <= 0 {
+		return "-"
+	}
+	// convert ms to nanoseconds, cast to int64
+	nanos := int64(time.Duration(ms) * time.Millisecond)
+	t := time.Unix(0, nanos).UTC()
+	return t.Format(time.RFC3339)
+}
