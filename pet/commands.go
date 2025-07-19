@@ -210,7 +210,12 @@ var offspringCmd = &cobra.Command{
 	},
 }
 
-func epochToISO8601(epoch int64) string {
-	t := time.Unix(epoch, 0).UTC()
+func epochToISO8601(ms int64) string {
+	if ms <= 0 {
+		return "-"
+	}
+	// convert ms to nanoseconds, cast to int64
+	nanos := int64(time.Duration(ms) * time.Millisecond)
+	t := time.Unix(0, nanos).UTC()
 	return t.Format(time.RFC3339)
 }
