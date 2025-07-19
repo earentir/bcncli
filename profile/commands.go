@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
@@ -19,7 +21,12 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.AddCommand(infoCmd, userCmd, inventoryCmd, statsCmd, trophiesCmd, flatinventoryCmd)
-	infoCmd.Flags().BoolP("debug", "d", false, "print raw JSON response")
+
+	for _, c := range []*cobra.Command{infoCmd, userCmd} {
+		c.Flags().BoolP("debug", "d", false, "print raw JSON response")
+		c.Flags().StringP("filter", "f", "", "comma-separated list of sections to print (e.g. farms,pets)")
+		c.Flags().StringP("sort", "s", "", "sorting key for a section (e.g. farm:plant)")
+	}
 }
 
 // ProfileInfo represents the detailed profile information returned by the API.
@@ -240,26 +247,10 @@ type LbPositions struct {
 
 var infoCmd = &cobra.Command{
 	Use:   "info [id]",
-	Short: "Fetch profile info",
+	Short: "Fetch profile info (detailed)",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		userID := common.ParseID(args[0])
-
-		payload := map[string]any{"type": "profile", "id": userID}
-		raw := client.FetchDataOrExit(payload)
-
-		if debug, _ := cmd.Flags().GetBool("debug"); debug {
-			common.PrintJSON(raw)
-			return
-		}
-
-		var responce ProfileInfo
-		if err := json.Unmarshal(raw, &responce); err != nil {
-			fmt.Println("Error decoding profile info:", err)
-			os.Exit(1)
-		}
-
-		renderProfileInfoTable(responce)
+		executeProfileCmd(cmd, args, "profile")
 	},
 }
 
@@ -288,26 +279,261 @@ func renderProfileInfoTable(p ProfileInfo) {
 
 var userCmd = &cobra.Command{
 	Use:   "user [id]",
-	Short: "Fetch user details",
+	Short: "Fetch user details (alias for info)",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		userID := common.ParseID(args[0])
-		payload := map[string]any{"type": "user", "id": userID}
-		raw := client.FetchDataOrExit(payload)
-
-		if debug, _ := cmd.Flags().GetBool("debug"); debug {
-			common.PrintJSON(raw)
-			return
-		}
-
-		var p ProfileInfo
-		if err := json.Unmarshal(raw, &p); err != nil {
-			fmt.Println("Error decoding user details:", err)
-			os.Exit(1)
-		}
-
-		renderProfileInfoTable(p)
+		executeProfileCmd(cmd, args, "user")
 	},
+}
+
+// executeProfileCmd is shared by infoCmd and userCmd to avoid duplication.
+func executeProfileCmd(cmd *cobra.Command, args []string, payloadType string) {
+	userID := common.ParseID(args[0])
+
+	// handle debug flag early so we do not unmarshal twice
+	if debug, _ := cmd.Flags().GetBool("debug"); debug {
+		payload := map[string]any{"type": payloadType, "id": userID}
+		raw := client.FetchDataOrExit(payload)
+		common.PrintJSON(raw)
+		return
+	}
+
+	// fetch + unmarshal
+	payload := map[string]any{"type": payloadType, "id": userID}
+	raw := client.FetchDataOrExit(payload)
+	var profile ProfileInfo
+	if err := json.Unmarshal(raw, &profile); err != nil {
+		fmt.Println("error decoding profile info:", err)
+		os.Exit(1)
+	}
+
+	// parse flags
+	filterFlag, _ := cmd.Flags().GetString("filter")
+	sortFlag, _ := cmd.Flags().GetString("sort")
+	filters := parseFilter(filterFlag)
+
+	renderProfile(profile, filters, sortFlag)
+}
+
+// ===============================
+// Rendering helpers
+// ===============================
+
+type sectionWriter struct {
+	tw *tabwriter.Writer
+}
+
+func newSectionWriter() *sectionWriter {
+	tw := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
+	return &sectionWriter{tw: tw}
+}
+
+func (sw *sectionWriter) flush() { _ = sw.tw.Flush() }
+
+func (sw *sectionWriter) title(t string) { fmt.Fprintf(sw.tw, "\n=== %s ===\n", strings.ToUpper(t)) }
+
+func (sw *sectionWriter) row(k, v string) { fmt.Fprintf(sw.tw, "%s:\t%s\n", k, v) }
+
+// renderProfile prints every possible field of ProfileInfo.
+// If filters is non-empty only the requested sections are rendered.
+func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
+	sw := newSectionWriter()
+	defer sw.flush()
+
+	want := func(name string) bool {
+		return len(filters) == 0 || filters[strings.ToLower(name)]
+	}
+
+	// Basic section
+	if want("basic") {
+		sw.title("Basic")
+		sw.row("ID", strconv.FormatInt(p.ID, 10))
+		sw.row("Name", p.Name)
+		sw.row("Registered", p.RegistrationDate)
+		sw.row("Rank", strconv.Itoa(p.Rank))
+		sw.row("Tier", strconv.Itoa(p.Tier))
+		sw.row("BC", fmt.Sprintf("%d", p.BC))
+		sw.row("SP", fmt.Sprintf("%d", p.SP))
+		sw.row("KR", fmt.Sprintf("%d", p.KR))
+		sw.row("Quest Level", strconv.Itoa(p.QuestLevel))
+		sw.row("Daily Streak", strconv.Itoa(p.DailyClaimStreak))
+	}
+
+	// Faction
+	if want("faction") && p.FactionID != 0 {
+		sw.title("Faction")
+		sw.row("Tag", p.Faction.Tag)
+		sw.row("Name", p.Faction.Name)
+		sw.row("Member Count", strconv.Itoa(p.Faction.MemberCount))
+		sw.row("Owner", strconv.FormatInt(p.Faction.OwnerBcID, 10))
+		sw.row("About", p.Faction.About)
+		sw.row("MOTD", p.Faction.Motd)
+	}
+
+	// Farm Plots
+	if want("farms") {
+		sw.title("Farm Plots")
+		plots := append([]FarmPlot(nil), p.FarmPlots...) // copy to avoid mutation
+		sortFarmPlots(plots, sortFlag)
+		for i, fp := range plots {
+			prefix := fmt.Sprintf("Plot %d", i+1)
+			sw.row(prefix+" Level", strconv.Itoa(fp.Level))
+			sw.row(prefix+" Extra", strconv.FormatBool(fp.IsExtra))
+			sw.row(prefix+" Planted", strconv.FormatBool(fp.Status.IsPlanted))
+			if fp.Status.IsPlanted {
+				sw.row(prefix+" ItemID", strconv.FormatInt(fp.Status.ItemID, 10))
+				sw.row(prefix+" PlantedTime", strconv.FormatInt(fp.Status.PlantedTime, 10))
+			}
+			if fp.Boost.Multiplier > 0 {
+				sw.row(prefix+" Boost x", fmt.Sprintf("%d", fp.Boost.Multiplier))
+				sw.row(prefix+" BoostEnd", strconv.FormatInt(fp.Boost.EndTime, 10))
+			}
+		}
+	}
+
+	// Generators
+	if want("generators") {
+		sw.title("Generators")
+		for i, g := range p.Generators {
+			prefix := fmt.Sprintf("Gen %d", i+1)
+			sw.row(prefix+" Level", strconv.Itoa(g.Level))
+			sw.row(prefix+" Extra", strconv.FormatBool(g.IsExtra))
+		}
+	}
+
+	// Quests
+	if want("quests") {
+		sw.title("Quests")
+		for i, q := range p.Quests {
+			prefix := fmt.Sprintf("Quest %d", i+1)
+			sw.row(prefix+" ItemID", strconv.FormatInt(q.ItemID, 10))
+			sw.row(prefix+" Required", strconv.FormatInt(q.AmountRequired, 10))
+			sw.row(prefix+" Fulfilled", strconv.FormatInt(q.AmountFulfilled, 10))
+		}
+	}
+
+	// Cooldowns
+	if want("cooldowns") {
+		sw.title("Cooldowns (Unix ms)")
+		sw.row("Fish", strconv.FormatInt(p.Cooldowns.Fish, 10))
+		sw.row("Hunt", strconv.FormatInt(p.Cooldowns.Hunt, 10))
+		sw.row("Explore", strconv.FormatInt(p.Cooldowns.Explore, 10))
+		sw.row("Mine", strconv.FormatInt(p.Cooldowns.Mine, 10))
+		sw.row("Work", strconv.FormatInt(p.Cooldowns.Work, 10))
+		sw.row("Daily", strconv.FormatInt(p.Cooldowns.Daily, 10))
+		sw.row("Water", strconv.FormatInt(p.Cooldowns.Water, 10))
+		sw.row("ClaimGenerators", strconv.FormatInt(p.Cooldowns.ClaimGenerators, 10))
+	}
+
+	// Effects / Modifiers
+	if want("effects") {
+		sw.title("Effects")
+		keys := make([]string, 0, len(p.Effects))
+		for k := range p.Effects {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			e := p.Effects[k]
+			sw.row(k+" End", strconv.FormatInt(e.EndTime, 10))
+			sw.row(k+" Type", e.Modifier.Type)
+			if e.Modifier.Action != "" {
+				sw.row(k+" Action", e.Modifier.Action)
+			}
+			sw.row(k+" Mult x", strconv.FormatInt(e.Modifier.Multiplier, 10))
+		}
+	}
+
+	// Upgrades
+	if want("upgrades") {
+		sw.title("Upgrades")
+		sw.row("Fish", strconv.Itoa(p.Upgrades.Fish))
+		sw.row("FishExtra", strconv.Itoa(p.Upgrades.FishExtra))
+		sw.row("Hunt", strconv.Itoa(p.Upgrades.Hunt))
+		sw.row("HuntExtra", strconv.Itoa(p.Upgrades.HuntExtra))
+		sw.row("Explore", strconv.Itoa(p.Upgrades.Explore))
+		sw.row("ExploreExtra", strconv.Itoa(p.Upgrades.ExploreExtra))
+		sw.row("Mine", strconv.Itoa(p.Upgrades.Mine))
+		sw.row("MineExtra", strconv.Itoa(p.Upgrades.MineExtra))
+		sw.row("PetsStable", strconv.Itoa(p.Upgrades.PetsStable))
+		sw.row("PetsStableExtra", strconv.Itoa(p.Upgrades.PetsStableExtra))
+	}
+
+	// Perks
+	if want("perks") {
+		sw.title("Perks")
+		sw.row("LowerRankCost", strconv.Itoa(p.Perks.LowerRankCost))
+		sw.row("LowerTierCost", strconv.Itoa(p.Perks.LowerTierCost))
+		sw.row("RaisePetSpace", strconv.Itoa(p.Perks.RaisePetSpace))
+		sw.row("RaiseEquipSlots", strconv.Itoa(p.Perks.RaiseEquipSlots))
+		// (add remaining perks as needed)
+	}
+
+	// Settings
+	if want("settings") {
+		sw.title("Settings")
+		if p.Settings.ProfileShowStatID != nil {
+			sw.row("ProfileShowStatID", strconv.Itoa(*p.Settings.ProfileShowStatID))
+		}
+		sw.row("SyncDiscordName", fmt.Sprintf("%t", p.Settings.SyncDiscordName))
+		sw.row("PublicDiscordProfile", fmt.Sprintf("%t", p.Settings.PublicDiscordProfile))
+		sw.row("DiscordPingOnResponse", fmt.Sprintf("%t", p.Settings.DiscordPingOnResponse))
+	}
+
+	// Custom
+	if want("custom") {
+		sw.title("Custom")
+		sw.row("HideAvatar", fmt.Sprintf("%t", p.Custom.ProfileHideAvatar))
+		sw.row("HideTitleName", fmt.Sprintf("%t", p.Custom.ProfileHideTitleName))
+		sw.row("UseChatEmblemEmoji", fmt.Sprintf("%t", p.Custom.ProfileUseChatEmblemEmoji))
+		if p.Custom.ProfileBackground != nil {
+			sw.row("Background", *p.Custom.ProfileBackground)
+		}
+	}
+}
+
+// sortFarmPlots sorts plots in-place when the user provided a sort flag like "farm:plant".
+// Currently supported keys: plant, level.
+func sortFarmPlots(plots []FarmPlot, sortFlag string) {
+	if len(plots) == 0 || sortFlag == "" {
+		return
+	}
+	parts := strings.Split(sortFlag, ":")
+	if len(parts) != 2 || strings.ToLower(parts[0]) != "farm" {
+		return // not meant for farms
+	}
+
+	key := strings.ToLower(parts[1])
+	switch key {
+	case "plant", "item":
+		sort.SliceStable(plots, func(i, j int) bool {
+			return plots[i].Status.ItemID < plots[j].Status.ItemID
+		})
+	case "level":
+		sort.SliceStable(plots, func(i, j int) bool {
+			return plots[i].Level < plots[j].Level
+		})
+	}
+}
+
+// ===============================
+// Helper utilities
+// ===============================
+
+// parseFilter converts comma-separated filter string to a set.
+func parseFilter(raw string) map[string]bool {
+	if raw == "" {
+		return nil
+	}
+	set := make(map[string]bool)
+	for _, f := range strings.Split(raw, ",") {
+		f = strings.ToLower(strings.TrimSpace(f))
+		if f == "" {
+			continue
+		}
+		set[f] = true
+	}
+	return set
 }
 
 var inventoryCmd = &cobra.Command{
