@@ -84,8 +84,8 @@ var ownedCmd = &cobra.Command{
 	Short: "List pets for a user",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		userId := common.ParseID(args[0])
-		payload := map[string]interface{}{"type": "userPetsAndEggs", "id": userId}
+		userID := common.ParseID(args[0])
+		payload := map[string]interface{}{"type": "userPetsAndEggs", "id": userID}
 		raw := client.FetchDataOrExit(payload)
 
 		// Parse wrapper
