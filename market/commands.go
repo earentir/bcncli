@@ -50,7 +50,6 @@ var overviewCmd = &cobra.Command{
 	Use:   "overview",
 	Short: "Show market overview",
 	Run: func(cmd *cobra.Command, args []string) {
-		debug, _ := cmd.Flags().GetBool("debug")
 		sortField, _ := cmd.Flags().GetString("sort")
 
 		// 1) fetch raw JSON
@@ -58,14 +57,14 @@ var overviewCmd = &cobra.Command{
 		raw := client.FetchDataOrExit(payload)
 
 		// 2) if --debug, just dump JSON
-		if debug {
+		if debug, _ := cmd.Flags().GetBool("debug"); debug {
 			common.PrintJSON(raw)
 			return
 		}
 
 		// 3) unmarshal into our struct
-		var resp OverviewResponse
-		if err := json.Unmarshal(raw, &resp); err != nil {
+		var responce OverviewResponse
+		if err := json.Unmarshal(raw, &responce); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to parse overview: %v\n", err)
 			os.Exit(1)
 		}
@@ -89,7 +88,7 @@ var overviewCmd = &cobra.Command{
 			Value int64
 		}
 		var rows []row
-		for key, val := range resp.Data {
+		for key, val := range responce.Data {
 			if !strings.HasPrefix(key, "item") {
 				continue
 			}
@@ -119,6 +118,8 @@ var overviewCmd = &cobra.Command{
 
 		// 7) render as table
 		w := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
+		defer w.Flush()
+
 		fmt.Fprintln(w, "ITEM\tVALUE")
 		for _, r := range rows {
 			fmt.Fprintf(w, "%s (%d)\t%s\n", r.Name, r.ID, common.FormatPrice(r.Value))
@@ -127,7 +128,6 @@ var overviewCmd = &cobra.Command{
 	},
 }
 
-// itemCmd lists market listings for a specific item
 var itemCmd = &cobra.Command{
 	Use:   "item [itemId]",
 	Short: "List market listings for an item",
@@ -135,6 +135,12 @@ var itemCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		debug, _ := cmd.Flags().GetBool("debug")
 		itemID := common.ParseID(args[0])
+
+		// instead of a map, build a typed payload
+		type requestPayload struct {
+			Type   string `json:"type"`
+			ItemID int    `json:"itemId"`
+		}
 		payload := map[string]interface{}{"type": "marketListings", "itemId": itemID}
 		raw := client.FetchDataOrExit(payload)
 
@@ -143,12 +149,14 @@ var itemCmd = &cobra.Command{
 			return
 		}
 
+		// unmarshal into a slice of Listing structs
 		var listings []Listing
 		if err := json.Unmarshal(raw, &listings); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to parse listings: %v\n", err)
 			os.Exit(1)
 		}
 
+		// load item names as before
 		items, err := common.LoadItemData("itemid.json", 300)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "could not load items: %v\n", err)
@@ -160,6 +168,7 @@ var itemCmd = &cobra.Command{
 			nameByID[it.ID] = it.Name
 		}
 
+		// pretty-print
 		w := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
 		fmt.Fprintln(w, "ITEM\tPRICE\tAMOUNT")
 		for _, l := range listings {
@@ -167,7 +176,14 @@ var itemCmd = &cobra.Command{
 			if name == "" {
 				name = fmt.Sprintf("UNKNOWN(%d)", l.ItemID)
 			}
-			fmt.Fprintf(w, "%s (%d)\t%s\t%d\n", name, l.ItemID, common.FormatPrice(l.Price), l.Amount)
+			fmt.Fprintf(
+				w,
+				"%s (%d)\t%s\t%d\n",
+				name,                        // item name
+				l.ItemID,                    // item ID
+				common.FormatPrice(l.Price), // price in your format
+				l.Amount,                    // quantity
+			)
 		}
 		w.Flush()
 	},
