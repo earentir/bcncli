@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
-	"time"
 
 	"bcncli/client"
 
@@ -176,7 +175,7 @@ var ownedCmd = &cobra.Command{
 					fmt.Fprintf(w, "%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%s\n",
 						p.ID, p.Name, p.Species, p.Tier, p.XP,
 						p.AdventureType, p.LifetimeItemsFound,
-						p.AdventureBoost.Multiplier, epochToISO8601(p.AdventureBoost.EndTime))
+						p.AdventureBoost.Multiplier, client.EpochToISO8601(p.AdventureBoost.EndTime))
 				}
 				w.Flush()
 				fmt.Println()
@@ -191,7 +190,7 @@ var ownedCmd = &cobra.Command{
 			fmt.Fprintf(w, "%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%s\n",
 				p.ID, p.Name, p.Species, p.Tier, p.XP,
 				p.AdventureType, p.LifetimeItemsFound,
-				p.AdventureBoost.Multiplier, epochToISO8601(p.AdventureBoost.EndTime))
+				p.AdventureBoost.Multiplier, client.EpochToISO8601(p.AdventureBoost.EndTime))
 		}
 		w.Flush()
 	},
@@ -207,14 +206,4 @@ var offspringCmd = &cobra.Command{
 		data := client.FetchDataOrExit(payload)
 		client.PrintJSON(data)
 	},
-}
-
-func epochToISO8601(ms int64) string {
-	if ms <= 0 {
-		return "-"
-	}
-	// convert ms to nanoseconds, cast to int64
-	nanos := int64(time.Duration(ms) * time.Millisecond)
-	t := time.Unix(0, nanos).UTC()
-	return t.Format(time.RFC3339)
 }
