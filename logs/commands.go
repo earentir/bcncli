@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"bcncli/client"
+	"bcncli/common"
 
 	"github.com/spf13/cobra"
 )
@@ -31,7 +32,7 @@ var bcidCmd = &cobra.Command{
 	Short: "List logs for a user by BCID",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		bcId := client.ParseID(args[0])
+		bcId := common.ParseID(args[0])
 		page, _ := cmd.Flags().GetInt("page")
 
 		payload := map[string]interface{}{
@@ -40,7 +41,7 @@ var bcidCmd = &cobra.Command{
 			"page": page,
 		}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -61,7 +62,7 @@ var idtypeCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Invalid ID type '%s', must be 'faction' or 'item'\n", t)
 			os.Exit(1)
 		}
-		id := client.ParseID(args[1])
+		id := common.ParseID(args[1])
 		page, _ := cmd.Flags().GetInt("page")
 
 		payload := map[string]interface{}{
@@ -71,7 +72,7 @@ var idtypeCmd = &cobra.Command{
 			"page":   page,
 		}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -90,7 +91,7 @@ var logtypeCmd = &cobra.Command{
 			"page":    page,
 		}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -100,7 +101,7 @@ var inputsCmd = &cobra.Command{
 	Short: "List daily inputs for user on a date",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		bcId := client.ParseID(args[0])
+		bcId := common.ParseID(args[0])
 		date := args[1]
 
 		payload := map[string]interface{}{
@@ -109,6 +110,6 @@ var inputsCmd = &cobra.Command{
 			"date": date,
 		}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }

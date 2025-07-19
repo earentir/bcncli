@@ -3,9 +3,9 @@ package gamedata
 
 import (
 	"fmt"
-	"os"
 
 	"bcncli/client"
+	"bcncli/common"
 
 	"github.com/spf13/cobra"
 )
@@ -32,15 +32,11 @@ var itemsCmd = &cobra.Command{
 
 		// Check cache flag
 		cache, _ := cmd.Flags().GetBool("cache")
-		if cache {
-			fileName := "gamedata-items.json"
-			if err := os.WriteFile(fileName, data, 0644); err != nil {
-				fmt.Fprintf(os.Stderr, "Error writing cache file: %v\n", err)
-				os.Exit(1)
-			}
-			fmt.Printf("Data cached to %s\n", fileName)
-		} else {
-			client.PrintJSON(data)
-		}
+		fileName := "itemid.json"
+		common.LoadItemData(fileName, 300, cache)
+
+		fmt.Printf("Data cached to %s\n", fileName)
+		common.PrintJSON(data)
+
 	},
 }

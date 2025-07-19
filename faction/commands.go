@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"bcncli/client"
+	"bcncli/common"
 
 	"github.com/spf13/cobra"
 )
@@ -23,10 +24,10 @@ var infoCmd = &cobra.Command{
 	Short: "Fetch faction info",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "faction", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -35,10 +36,10 @@ var membersCmd = &cobra.Command{
 	Short: "List faction members",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "factionMembers", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -48,7 +49,7 @@ var recruitingCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		payload := map[string]interface{}{"type": "recruitingFactions"}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -58,7 +59,7 @@ var requestsCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		idTypeArg := args[0]
-		id := client.ParseID(args[1])
+		id := common.ParseID(args[1])
 		var idType string
 		if idTypeArg == "faction" {
 			idType = "factionId"
@@ -70,6 +71,6 @@ var requestsCmd = &cobra.Command{
 		}
 		payload := map[string]interface{}{"type": "factionJoinRequests", "idType": idType, "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }

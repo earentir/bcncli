@@ -2,6 +2,7 @@ package egg
 
 import (
 	"bcncli/client"
+	"bcncli/common"
 	"encoding/json"
 
 	"github.com/spf13/cobra"
@@ -21,10 +22,10 @@ var infoCmd = &cobra.Command{
 	Short: "Fetch egg info",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "egg", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }
 
@@ -33,12 +34,12 @@ var ownedCmd = &cobra.Command{
 	Short: "List eggs for a user",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		userId := client.ParseID(args[0])
+		userId := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "userPetsAndEggs", "id": userId}
 		raw := client.FetchDataOrExit(payload)
 		var resp map[string]json.RawMessage
 		json.Unmarshal(raw, &resp)
-		client.PrintJSON(resp["eggs"])
+		common.PrintJSON(resp["eggs"])
 	},
 }
 
@@ -47,9 +48,9 @@ var offspringCmd = &cobra.Command{
 	Short: "Fetch offspring for an egg",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		id := client.ParseID(args[0])
+		id := common.ParseID(args[0])
 		payload := map[string]interface{}{"type": "petOffspring", "id": id}
 		data := client.FetchDataOrExit(payload)
-		client.PrintJSON(data)
+		common.PrintJSON(data)
 	},
 }

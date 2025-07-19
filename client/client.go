@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/spf13/viper"
@@ -16,23 +15,13 @@ import (
 const apiURL = "https://bconomy.net/api/data"
 
 // validateAPIKey exits if missing
-func ValidateAPIKey() string {
+func validateAPIKey() string {
 	key := viper.GetString("apikey")
 	if key == "" {
 		fmt.Fprintln(os.Stderr, "Error: API key must be set via --apikey flag, config file, or env var BCONOMYAPI")
 		os.Exit(1)
 	}
 	return key
-}
-
-// parseID converts arg to int
-func ParseID(arg string) int {
-	id, err := strconv.Atoi(arg)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Invalid ID: %s\n", arg)
-		os.Exit(1)
-	}
-	return id
 }
 
 // fetchData posts payload and returns bytes or error
@@ -56,20 +45,13 @@ func fetchData(payload map[string]interface{}, apiKey string) ([]byte, error) {
 
 // FetchDataOrExit wraps fetchData
 func FetchDataOrExit(payload map[string]interface{}) []byte {
-	apiKey := ValidateAPIKey()
+	apiKey := validateAPIKey()
 	data, err := fetchData(payload, apiKey)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error fetching data: %v\n", err)
 		os.Exit(1)
 	}
 	return data
-}
-
-// PrintJSON pretty-prints
-func PrintJSON(data []byte) {
-	var pretty bytes.Buffer
-	json.Indent(&pretty, data, "", "  ")
-	fmt.Println(pretty.String())
 }
 
 // EpochToISO8601 converts milliseconds to ISO 8601 format
