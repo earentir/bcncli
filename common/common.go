@@ -244,3 +244,113 @@ func EpochToISO8601(ms int64) string {
 	t := time.Unix(0, nanos).UTC()
 	return t.Format(time.RFC3339)
 }
+
+// TimeUntilISO8601 takes an RFC3339 timestamp (EpochToISO8601),
+// and returns the time from now until that instant in a human‑readable form.
+// If the time is now or in the past, it returns "0".
+func TimeUntilISO8601(iso string) string {
+	// parse the incoming timestamp
+	t, err := time.Parse(time.RFC3339, iso)
+	if err != nil {
+		return "-" // or handle parse error as you prefer
+	}
+	now := time.Now().UTC()
+	diff := t.Sub(now)
+
+	// if zero or negative, we’re done
+	if diff <= 0 {
+		return "0"
+	}
+
+	// break diff down into components
+	totalSeconds := int64(diff.Seconds())
+	weeks := totalSeconds / (7 * 24 * 3600)
+	totalSeconds %= 7 * 24 * 3600
+	days := totalSeconds / (24 * 3600)
+	totalSeconds %= 24 * 3600
+	hours := totalSeconds / 3600
+	totalSeconds %= 3600
+	minutes := totalSeconds / 60
+	seconds := totalSeconds % 60
+
+	// build the human‑readable parts
+	var parts []string
+	if weeks > 0 {
+		parts = append(parts, fmt.Sprintf("%dw", weeks))
+	}
+	if days > 0 {
+		parts = append(parts, fmt.Sprintf("%dd", days))
+	}
+	if hours > 0 {
+		parts = append(parts, fmt.Sprintf("%dh", hours))
+	}
+	if minutes > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", minutes))
+	}
+	// always show seconds if it’s the only unit, otherwise only if >0
+	if seconds > 0 || len(parts) == 0 {
+		parts = append(parts, fmt.Sprintf("%ds", seconds))
+	}
+
+	return strings.Join(parts, " ")
+}
+
+// ElapsedSinceISO8601 takes an RFC3339 timestamp (EpochToISO8601),
+// and returns the time elapsed from that instant until now in a human‑readable form.
+// If the time is in the future or parsing fails, it returns "0".
+func ElapsedSinceISO8601(iso string) string {
+	// parse the incoming timestamp
+	t, err := time.Parse(time.RFC3339, iso)
+	if err != nil {
+		return "0" // or handle error otherwise
+	}
+	now := time.Now().UTC()
+	diff := now.Sub(t)
+
+	// if zero or negative (i.e. t is in the future), we’re done
+	if diff <= 0 {
+		return "0"
+	}
+
+	// break diff down into components
+	totalSeconds := int64(diff.Seconds())
+	weeks := totalSeconds / (7 * 24 * 3600)
+	totalSeconds %= 7 * 24 * 3600
+	days := totalSeconds / (24 * 3600)
+	totalSeconds %= 24 * 3600
+	hours := totalSeconds / 3600
+	totalSeconds %= 3600
+	minutes := totalSeconds / 60
+	seconds := totalSeconds % 60
+
+	// build the human‑readable parts
+	var parts []string
+	if weeks > 0 {
+		parts = append(parts, fmt.Sprintf("%dw", weeks))
+	}
+	if days > 0 {
+		parts = append(parts, fmt.Sprintf("%dd", days))
+	}
+	if hours > 0 {
+		parts = append(parts, fmt.Sprintf("%dh", hours))
+	}
+	if minutes > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", minutes))
+	}
+	// always show seconds if it’s the only unit, otherwise only if >0
+	if seconds > 0 || len(parts) == 0 {
+		parts = append(parts, fmt.Sprintf("%ds", seconds))
+	}
+
+	return strings.Join(parts, " ")
+}
+
+// LookUpItemName finds the item name by ID in the provided items slice.
+func LookUpItemName(id int, items []Item) string {
+	for _, item := range items {
+		if item.ID == id {
+			return item.Name
+		}
+	}
+	return fmt.Sprintf("Unknown Item ID %d", id)
+}

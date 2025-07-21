@@ -31,7 +31,7 @@ func init() {
 
 // ProfileInfo represents the detailed profile information returned by the API.
 type ProfileInfo struct {
-	ID                    int64             `json:"id"`
+	ID                    int               `json:"id"`
 	Name                  string            `json:"name"`
 	RegistrationDate      string            `json:"registrationDate"`
 	Rank                  int               `json:"rank"`
@@ -108,7 +108,7 @@ type Generator struct {
 
 // Quest represents a quest in the user's profile.
 type Quest struct {
-	ItemID          int64 `json:"itemId"`
+	ItemID          int   `json:"itemId"`
 	AmountRequired  int64 `json:"amountRequired"`
 	AmountFulfilled int64 `json:"amountFulfilled"`
 }
@@ -254,28 +254,28 @@ var infoCmd = &cobra.Command{
 	},
 }
 
-// renderProfileInfoTable prints a short summary using the standard
-// text/tabwriter for tidy alignment.
-func renderProfileInfoTable(p ProfileInfo) {
-	tw := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
-	defer tw.Flush()
+// // renderProfileInfoTable prints a short summary using the standard
+// // text/tabwriter for tidy alignment.
+// func renderProfileInfoTable(p ProfileInfo) {
+// 	tw := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
+// 	defer tw.Flush()
 
-	row := func(label, value string) {
-		fmt.Fprintf(tw, "%s:	%s\n", label, value)
-	}
+// 	row := func(label, value string) {
+// 		fmt.Fprintf(tw, "%s:	%s\n", label, value)
+// 	}
 
-	row("ID", strconv.FormatInt(p.ID, 10))
-	row("Name", p.Name)
-	row("Registered", p.RegistrationDate)
-	row("Rank", strconv.Itoa(p.Rank))
-	row("Tier", strconv.Itoa(p.Tier))
-	row("BC", fmt.Sprintf("%d", p.BC))
-	row("SP", fmt.Sprintf("%d", p.SP))
-	row("KR", fmt.Sprintf("%d", p.KR))
-	row("Faction", fmt.Sprintf("%s (ID %d)", p.FactionTag, p.FactionID))
-	row("Quest Level", strconv.Itoa(p.QuestLevel))
-	row("Daily Streak", strconv.Itoa(p.DailyClaimStreak))
-}
+// 	row("ID", strconv.FormatInt(p.ID, 10))
+// 	row("Name", p.Name)
+// 	row("Registered", p.RegistrationDate)
+// 	row("Rank", strconv.Itoa(p.Rank))
+// 	row("Tier", strconv.Itoa(p.Tier))
+// 	row("BC", fmt.Sprintf("%d", p.BC))
+// 	row("SP", fmt.Sprintf("%d", p.SP))
+// 	row("KR", fmt.Sprintf("%d", p.KR))
+// 	row("Faction", fmt.Sprintf("%s (ID %d)", p.FactionTag, p.FactionID))
+// 	row("Quest Level", strconv.Itoa(p.QuestLevel))
+// 	row("Daily Streak", strconv.Itoa(p.DailyClaimStreak))
+// }
 
 var userCmd = &cobra.Command{
 	Use:   "user [id]",
@@ -337,6 +337,13 @@ func (sw *sectionWriter) row(k, v string) { fmt.Fprintf(sw.tw, "%s:\t%s\n", k, v
 // renderProfile prints every possible field of ProfileInfo.
 // If filters is non-empty only the requested sections are rendered.
 func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
+
+	itemData, err := common.LoadItemData("itemid.json", 300)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "could not load item data: %v\n", err)
+		os.Exit(1)
+	}
+
 	sw := newSectionWriter()
 	defer sw.flush()
 
@@ -347,7 +354,7 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 	// Basic section
 	if want("basic") {
 		sw.title("Basic")
-		sw.row("ID", strconv.FormatInt(p.ID, 10))
+		sw.row("ID", strconv.Itoa(p.ID))
 		sw.row("Name", p.Name)
 		sw.row("Registered", p.RegistrationDate)
 		sw.row("Rank", strconv.Itoa(p.Rank))
@@ -406,23 +413,28 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 		sw.title("Quests")
 		for i, q := range p.Quests {
 			prefix := fmt.Sprintf("Quest %d", i+1)
-			sw.row(prefix+" ItemID", strconv.FormatInt(q.ItemID, 10))
-			sw.row(prefix+" Required", strconv.FormatInt(q.AmountRequired, 10))
-			sw.row(prefix+" Fulfilled", strconv.FormatInt(q.AmountFulfilled, 10))
+
+			rowText := fmt.Sprintf("%s (%d) | Required: %d | Fulfilled: %d",
+				common.LookUpItemName(q.ItemID, itemData),
+				q.ItemID,
+				q.AmountRequired,
+				q.AmountFulfilled)
+
+			sw.row(prefix, rowText)
 		}
 	}
 
 	// Cooldowns
 	if want("cooldowns") {
-		sw.title("Cooldowns (Unix ms)")
-		sw.row("Fish", strconv.FormatInt(p.Cooldowns.Fish, 10))
-		sw.row("Hunt", strconv.FormatInt(p.Cooldowns.Hunt, 10))
-		sw.row("Explore", strconv.FormatInt(p.Cooldowns.Explore, 10))
-		sw.row("Mine", strconv.FormatInt(p.Cooldowns.Mine, 10))
-		sw.row("Work", strconv.FormatInt(p.Cooldowns.Work, 10))
-		sw.row("Daily", strconv.FormatInt(p.Cooldowns.Daily, 10))
-		sw.row("Water", strconv.FormatInt(p.Cooldowns.Water, 10))
-		sw.row("ClaimGenerators", strconv.FormatInt(p.Cooldowns.ClaimGenerators, 10))
+		sw.title("Cooldowns")
+		sw.row("Fish", common.EpochToISO8601(p.Cooldowns.Fish)+" Last Used: "+common.ElapsedSinceISO8601(common.EpochToISO8601(p.Cooldowns.Fish)))
+		sw.row("Hunt", common.EpochToISO8601(p.Cooldowns.Hunt)+" Last Used: "+common.ElapsedSinceISO8601(common.EpochToISO8601(p.Cooldowns.Hunt)))
+		sw.row("Explore", common.EpochToISO8601(p.Cooldowns.Explore)+" Last Used: "+common.ElapsedSinceISO8601(common.EpochToISO8601(p.Cooldowns.Explore)))
+		sw.row("Mine", common.EpochToISO8601(p.Cooldowns.Mine)+" Last Used: "+common.ElapsedSinceISO8601(common.EpochToISO8601(p.Cooldowns.Mine)))
+		sw.row("Work", common.EpochToISO8601(p.Cooldowns.Work)+" Last Used: "+common.ElapsedSinceISO8601(common.EpochToISO8601(p.Cooldowns.Work)))
+		sw.row("Daily", common.EpochToISO8601(p.Cooldowns.Daily)+" Last Used: "+common.ElapsedSinceISO8601(common.EpochToISO8601(p.Cooldowns.Daily)))
+		sw.row("Water", common.EpochToISO8601(p.Cooldowns.Water)+" Last Used: "+common.ElapsedSinceISO8601(common.EpochToISO8601(p.Cooldowns.Water)))
+		sw.row("ClaimGenerators", common.EpochToISO8601(p.Cooldowns.ClaimGenerators)+" Last Used: "+common.ElapsedSinceISO8601(common.EpochToISO8601(p.Cooldowns.ClaimGenerators)))
 	}
 
 	// Effects / Modifiers
