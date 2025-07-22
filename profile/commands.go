@@ -362,13 +362,13 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 		for i, fp := range plots {
 			prefix := fmt.Sprintf("Plot %-3d", i+1)
 
-			rowText := fmt.Sprintf("Level: %-3d | Extra: %-5t | Planted: %-5t",
+			rowText := fmt.Sprintf("Level: %-2d | Extra: %-5t | Planted: %-5t",
 				fp.Level,
 				fp.IsExtra,
 				fp.Status.IsPlanted)
 
 			if fp.Status.IsPlanted {
-				rowText += fmt.Sprintf("\n%-15s (%-3d) | Planted On: %s",
+				rowText += fmt.Sprintf("\n%-14s (%-3d) | Planted On: %s",
 					common.LookUpItemName(fp.Status.ItemID, itemData),
 					fp.Status.ItemID,
 					common.EpochToISO8601(fp.Status.PlantedTime))
@@ -390,8 +390,11 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 		sw.title("Generators")
 		for i, g := range p.Generators {
 			prefix := fmt.Sprintf("Gen %d", i+1)
-			sw.row(prefix+" Level", strconv.Itoa(g.Level))
-			sw.row(prefix+" Extra", strconv.FormatBool(g.IsExtra))
+			rowText := fmt.Sprintf("Level: %-2d | Extra: %-5t", g.Level, g.IsExtra)
+			// sw.row(prefix+" Level", strconv.Itoa(g.Level))
+			// sw.row(prefix+" Extra", strconv.FormatBool(g.IsExtra))
+
+			sw.row(prefix, rowText)
 		}
 	}
 
@@ -401,7 +404,7 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 		for i, q := range p.Quests {
 			prefix := fmt.Sprintf("Quest %d", i+1)
 
-			rowText := fmt.Sprintf("%-18s (%-3d) | Required: %-8d | Fulfilled: %d",
+			rowText := fmt.Sprintf("%-18s (%-3d)\nRequired:  %-8d | Fulfilled: %d\n",
 				common.LookUpItemName(q.ItemID, itemData),
 				q.ItemID,
 				q.AmountRequired,
