@@ -414,7 +414,7 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 		for i, q := range p.Quests {
 			prefix := fmt.Sprintf("Quest %d", i+1)
 
-			rowText := fmt.Sprintf("%s (%d) | Required: %d | Fulfilled: %d",
+			rowText := fmt.Sprintf("%-18s (%-3d) | Required: %-8d | Fulfilled: %d",
 				common.LookUpItemName(q.ItemID, itemData),
 				q.ItemID,
 				q.AmountRequired,
