@@ -391,8 +391,6 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 		for i, g := range p.Generators {
 			prefix := fmt.Sprintf("Gen %d", i+1)
 			rowText := fmt.Sprintf("Level: %-2d | Extra: %-5t", g.Level, g.IsExtra)
-			// sw.row(prefix+" Level", strconv.Itoa(g.Level))
-			// sw.row(prefix+" Extra", strconv.FormatBool(g.IsExtra))
 
 			sw.row(prefix, rowText)
 		}
