@@ -30,6 +30,109 @@ type Item struct {
 	ImageURL    string        `json:"imageUrl"`
 }
 
+// FoodItem represents an entry of food item, with name and energy value.
+type FoodItem struct {
+	Name   string
+	Energy int
+}
+
+// AllFoodItems is a list of all food items with their energy values.
+var AllFoodItems = []FoodItem{
+	{"Seaweed", 25},
+	{"Sardine", 50},
+	{"Exotic Bean", 150},
+	{"Prawn", 150},
+	{"Red Mushroom", 200},
+	{"Bird Nest", 300},
+	{"Jellyfish", 350},
+	{"Soybean", 500},
+	{"Milk", 500},
+	{"Prime Steak", 600},
+	{"Ocean Crab", 750},
+	{"Blueberry", 750},
+	{"Golden Wheat", 1000},
+	{"Russet Potato", 1000},
+	{"Blowfish", 2500},
+	{"Electric Eel", 5000},
+	{"Strawberry", 7500},
+	{"Kiwi", 12500},
+	{"Seafood Salad", 23000},
+	{"Great White", 25000},
+	{"Mango", 25000},
+	{"Hearty Burger", 32500},
+	{"Melon", 50000},
+	{"Warm Broth", 58100},
+	{"Pearled Oyster", 100000},
+	{"Stone Soup", 268100},
+	{"Coconut", 750000},
+	{"Giant Squid", 1000000},
+	{"Pumpkin", 7500000},
+}
+
+// PetBoostItem represents a pet boost with its BC worth and effect.
+type PetBoostItem struct {
+	Name   string // Human-readable name of the boost
+	Worth  int    // Value in BC, stored as a plain integer
+	Effect string // Description of the boost effect
+}
+
+// AllPetBoostItems holds our collection of pet boost items.
+var AllPetBoostItems = []PetBoostItem{
+	{"Fragrant Dogrose", 2500000, "2× Pet Adventure Speed (2h)"},
+	{"Mystical Rowan", 25000000, "4× Pet Adventure Speed (2h)"},
+	{"Legendary Aguaje", 250000000, "8× Pet Adventure Speed (2h)"},
+	{"Magic Token", 1000000000, "10× Pet Adventure Speed (1d)"},
+}
+
+// PetData represents a creature with an icon, name, and category.
+type PetData struct {
+	Icon     string // Emoji or icon representation
+	Name     string // Human-readable name, without the icon
+	Category string // One of "Fish", "Hunt", "Explore", "Mine"
+}
+
+// AllPetTypes is the full list of available pets.
+var AllPetTypes = []PetData{
+	// Fish
+	{"🐬", "Dolphin", "Fish"},
+	{"🦦", "Otter", "Fish"},
+	{"🪿", "Goose", "Fish"},
+	{"🦭", "Seal", "Fish"},
+	{"🐳", "Whale", "Fish"},
+	{"🐢", "Turtle", "Fish"},
+	{"", "Dragon", "Fish"},
+
+	// Hunt
+	{"🦅", "Eagle", "Hunt"},
+	{"🐅", "Tiger", "Hunt"},
+	{"🦍", "Gorilla", "Hunt"},
+	{"🐊", "Crocodile", "Hunt"},
+	{"🐍", "Snake", "Hunt"},
+	{"", "Scorpion", "Hunt"},
+	{"", "Phoenix", "Hunt"},
+
+	// Explore
+	{"🐩", "Poodle", "Explore"},
+	{"🐕", "Dog", "Explore"},
+	{"🐎", "Mustang", "Explore"},
+	{"🐖", "Pig", "Explore"},
+	{"🦚", "Peacock", "Explore"},
+	{"🫏", "Donkey", "Explore"},
+	{"🐂", "Ox", "Explore"},
+	{"🐓", "Junglefowl", "Explore"},
+	{"🐇", "Rabbit", "Explore"},
+	{"🕊️", "Dove", "Explore"},
+	{"🦘", "Kangaroo", "Explore"},
+	{"", "Visitor", "Explore"},
+
+	// Mine
+	{"🦇", "Bat", "Mine"},
+	{"🐀", "Rat", "Mine"},
+	{"🐌", "Snail", "Mine"},
+	{"🦎", "Lizard", "Mine"},
+	{"", "Invader", "Mine"},
+}
+
 // FormatPrice formats n either with units (K, M, B, T) or, if you pass
 // useNum=true, as a plain integer with space separators.
 //
@@ -353,4 +456,50 @@ func LookUpItemName(id int, items []Item) string {
 		}
 	}
 	return fmt.Sprintf("Unknown Item ID %d", id)
+}
+
+// GetEnergy returns the energy value for the given item name.
+// If the item is not found, it returns 0.
+func GetEnergy(name string) int {
+	for _, it := range AllFoodItems {
+		if strings.EqualFold(it.Name, name) {
+			return it.Energy
+		}
+	}
+	return 0
+}
+
+// GetPetBoostDetails looks up a boost by name (case-insensitive).
+// It returns the worth (in BC) and effect string.
+// If the boost isn't found, it returns 0 and an empty string.
+func GetPetBoostDetails(name string) (int, string) {
+	for _, boost := range AllPetBoostItems {
+		if strings.EqualFold(boost.Name, name) {
+			return boost.Worth, boost.Effect
+		}
+	}
+	return 0, ""
+}
+
+// GetPetCategory returns the category of the pet with the given name (case-insensitive).
+// If the pet is not found, it returns an empty string.
+func GetPetCategory(name string) string {
+	for _, pet := range AllPetTypes {
+		if strings.EqualFold(pet.Name, name) {
+			return pet.Category
+		}
+	}
+	return ""
+}
+
+// GetPetsByCategory returns a slice of all pets in the given category (case-insensitive).
+// If no pets are found, it returns an empty slice.
+func GetPetsByCategory(category string) []PetData {
+	var results []PetData
+	for _, pet := range AllPetTypes {
+		if strings.EqualFold(pet.Category, category) {
+			results = append(results, pet)
+		}
+	}
+	return results
 }
