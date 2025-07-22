@@ -254,29 +254,6 @@ var infoCmd = &cobra.Command{
 	},
 }
 
-// // renderProfileInfoTable prints a short summary using the standard
-// // text/tabwriter for tidy alignment.
-// func renderProfileInfoTable(p ProfileInfo) {
-// 	tw := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
-// 	defer tw.Flush()
-
-// 	row := func(label, value string) {
-// 		fmt.Fprintf(tw, "%s:	%s\n", label, value)
-// 	}
-
-// 	row("ID", strconv.FormatInt(p.ID, 10))
-// 	row("Name", p.Name)
-// 	row("Registered", p.RegistrationDate)
-// 	row("Rank", strconv.Itoa(p.Rank))
-// 	row("Tier", strconv.Itoa(p.Tier))
-// 	row("BC", fmt.Sprintf("%d", p.BC))
-// 	row("SP", fmt.Sprintf("%d", p.SP))
-// 	row("KR", fmt.Sprintf("%d", p.KR))
-// 	row("Faction", fmt.Sprintf("%s (ID %d)", p.FactionTag, p.FactionID))
-// 	row("Quest Level", strconv.Itoa(p.QuestLevel))
-// 	row("Daily Streak", strconv.Itoa(p.DailyClaimStreak))
-// }
-
 var userCmd = &cobra.Command{
 	Use:   "user [id]",
 	Short: "Fetch user details (alias for info)",
