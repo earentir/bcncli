@@ -90,13 +90,13 @@ type FarmPlot struct {
 // PlantStatus represents the planting status of a farm plot.
 type PlantStatus struct {
 	IsPlanted   bool  `json:"isPlanted"`
-	ItemID      int64 `json:"itemId"`
+	ItemID      int   `json:"itemId"`
 	PlantedTime int64 `json:"plantedTime"`
 }
 
 // Boost represents a farm plot boost with multiplier and end time.
 type Boost struct {
-	Multiplier int64 `json:"multiplier"`
+	Multiplier int   `json:"multiplier"`
 	EndTime    int64 `json:"endTime"`
 }
 
@@ -383,18 +383,28 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 		plots := append([]FarmPlot(nil), p.FarmPlots...) // copy to avoid mutation
 		sortFarmPlots(plots, sortFlag)
 		for i, fp := range plots {
-			prefix := fmt.Sprintf("Plot %d", i+1)
-			sw.row(prefix+" Level", strconv.Itoa(fp.Level))
-			sw.row(prefix+" Extra", strconv.FormatBool(fp.IsExtra))
-			sw.row(prefix+" Planted", strconv.FormatBool(fp.Status.IsPlanted))
+			prefix := fmt.Sprintf("Plot %-3d", i+1)
+
+			rowText := fmt.Sprintf("Level: %-3d | Extra: %-5t | Planted: %-5t",
+				fp.Level,
+				fp.IsExtra,
+				fp.Status.IsPlanted)
+
 			if fp.Status.IsPlanted {
-				sw.row(prefix+" ItemID", strconv.FormatInt(fp.Status.ItemID, 10))
-				sw.row(prefix+" PlantedTime", strconv.FormatInt(fp.Status.PlantedTime, 10))
+				rowText += fmt.Sprintf("\n%-15s (%-3d) | Planted On: %s",
+					common.LookUpItemName(fp.Status.ItemID, itemData),
+					fp.Status.ItemID,
+					common.EpochToISO8601(fp.Status.PlantedTime))
 			}
-			if fp.Boost.Multiplier > 0 {
-				sw.row(prefix+" Boost x", fmt.Sprintf("%d", fp.Boost.Multiplier))
-				sw.row(prefix+" BoostEnd", strconv.FormatInt(fp.Boost.EndTime, 10))
+
+			if fp.Boost.Multiplier > 1 {
+				rowText += fmt.Sprintf(" | Boost x%d | Ends at %d",
+					fp.Boost.Multiplier,
+					fp.Boost.EndTime)
 			}
+
+			sw.row(prefix, rowText)
+			fmt.Println()
 		}
 	}
 
