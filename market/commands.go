@@ -70,7 +70,7 @@ var overviewCmd = &cobra.Command{
 		}
 
 		// 4) load items and build name lookup
-		items, err := common.LoadItemData("itemid.json", 300)
+		items, err := common.LoadItemData("itemid.json", 3600)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "could not load items: %v\n", err)
 			os.Exit(1)
@@ -157,7 +157,7 @@ var itemCmd = &cobra.Command{
 		}
 
 		// load item names as before
-		items, err := common.LoadItemData("itemid.json", 300)
+		items, err := common.LoadItemData("itemid.json", 3600)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "could not load items: %v\n", err)
 			os.Exit(1)

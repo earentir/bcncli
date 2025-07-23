@@ -16,18 +16,18 @@ import (
 
 // Item represents an entry from itemid.json, with every field included.
 type Item struct {
-	Name        string        `json:"name"`
-	Emoji       string        `json:"emoji"`
-	IDName      string        `json:"idName"`
-	Uncraftable bool          `json:"uncraftable"`
-	Attributes  []string      `json:"attributes"`
-	LootSources []string      `json:"lootSources"`
-	Recipe      []interface{} `json:"recipe"`
-	ID          int           `json:"id"`
-	FlatID      string        `json:"flatId"`
-	Cost        int64         `json:"cost"`
-	UsedToCraft []interface{} `json:"usedToCraft"`
-	ImageURL    string        `json:"imageUrl"`
+	Name        string   `json:"name"`
+	Emoji       string   `json:"emoji"`
+	IDName      string   `json:"idName"`
+	Uncraftable bool     `json:"uncraftable"`
+	Attributes  []string `json:"attributes"`
+	LootSources []string `json:"lootSources"`
+	Recipe      []any    `json:"recipe"`
+	ID          int      `json:"id"`
+	FlatID      string   `json:"flatId"`
+	Cost        int64    `json:"cost"`
+	UsedToCraft []any    `json:"usedToCraft"`
+	ImageURL    string   `json:"imageUrl"`
 }
 
 // FoodItem represents an entry of food item, with name and energy value.

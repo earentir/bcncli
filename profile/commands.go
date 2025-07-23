@@ -321,7 +321,7 @@ func (sw *sectionWriter) row(k, v string) { fmt.Fprintf(sw.tw, "%s:\t%s\n", k, v
 // If filters is non-empty only the requested sections are rendered.
 func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 
-	itemData, err := common.LoadItemData("itemid.json", 300)
+	itemData, err := common.LoadItemData("itemid.json", 3600)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "could not load item data: %v\n", err)
 		os.Exit(1)
