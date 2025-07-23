@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"bcncli/.trunk/gamedata"
 	"bcncli/egg"
 	"bcncli/faction"
+	"bcncli/gamedata"
 	"bcncli/leaderboard"
 	"bcncli/logs"
 	"bcncli/market"

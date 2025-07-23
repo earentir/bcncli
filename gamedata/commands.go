@@ -33,7 +33,7 @@ var itemsCmd = &cobra.Command{
 		// Check cache flag
 		cache, _ := cmd.Flags().GetBool("cache")
 		fileName := "itemid.json"
-		common.LoadItemData(fileName, 300, cache)
+		common.LoadItemData(fileName, 3600, cache)
 
 		fmt.Printf("Data cached to %s\n", fileName)
 		common.PrintJSON(data)
