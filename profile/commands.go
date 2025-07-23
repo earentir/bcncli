@@ -65,7 +65,7 @@ type ProfileInfo struct {
 	ItemReserveAmounts    map[string]int64  `json:"itemReserveAmounts"`
 	Settings              Settings          `json:"settings"`
 	Custom                Custom            `json:"custom"`
-	DiscordServerIDs      []int64           `json:"discordServerIds"`
+	DiscordServerIDs      []string          `json:"discordServerIds"`
 	BlockedBcIDs          []int64           `json:"blockedBcIds"`
 	BanExpiryDate         string            `json:"banExpiryDate"`
 	BanReason             *string           `json:"banReason"`
@@ -183,11 +183,17 @@ type Perks struct {
 
 // Settings represents the user's profile settings.
 type Settings struct {
-	ProfileShowStatID     *int    `json:"profileShowStatId"`
-	Title                 *string `json:"title"`
-	SyncDiscordName       bool    `json:"syncDiscordName"`
-	PublicDiscordProfile  bool    `json:"publicDiscordProfile"`
-	DiscordPingOnResponse bool    `json:"discordPingOnResponse"`
+	ProfileShowStatID     *int          `json:"profileShowStatId"`
+	Title                 SettingsTitle `json:"title"`
+	SyncDiscordName       bool          `json:"syncDiscordName"`
+	PublicDiscordProfile  bool          `json:"publicDiscordProfile"`
+	DiscordPingOnResponse bool          `json:"discordPingOnResponse"`
+}
+
+// SettingsTitle represents the title settings in the user's profile.
+type SettingsTitle struct {
+	TitleType string `json:"type"`
+	TropyID   int    `json:"tropy"`
 }
 
 // Custom represents the user's profile customizations.
