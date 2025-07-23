@@ -16,18 +16,38 @@ import (
 
 // Item represents an entry from itemid.json, with every field included.
 type Item struct {
-	Name        string   `json:"name"`
-	Emoji       string   `json:"emoji"`
-	IDName      string   `json:"idName"`
-	Uncraftable bool     `json:"uncraftable"`
-	Attributes  []string `json:"attributes"`
-	LootSources []string `json:"lootSources"`
-	Recipe      []any    `json:"recipe"`
-	ID          int      `json:"id"`
-	FlatID      string   `json:"flatId"`
-	Cost        int64    `json:"cost"`
-	UsedToCraft []any    `json:"usedToCraft"`
-	ImageURL    string   `json:"imageUrl"`
+	Name        string       `json:"name"`
+	Emoji       string       `json:"emoji"`
+	IDName      string       `json:"idName"`
+	Uncraftable bool         `json:"uncraftable"`
+	Attributes  []string     `json:"attributes"`
+	LootSources []string     `json:"lootSources"`
+	UseLimit    int          `json:"useLimit"`
+	Recipe      []ItemRecipe `json:"recipe"`
+	Description string       `json:"desc"`
+	ID          int          `json:"id"`
+	FlatID      string       `json:"flatId"`
+	Cost        int64        `json:"cost"`
+	UsedToCraft []int        `json:"usedToCraft"`
+	ImageURL    string       `json:"imageUrl"`
+}
+
+// ItemRecipe represents a single recipe entry in itemid.json.
+// JSON is always an array [id, count].
+type ItemRecipe struct {
+	ID    int
+	Count int
+}
+
+// UnmarshalJSON decodes a JSON array [id, count] into ItemRecipe.
+func (ir *ItemRecipe) UnmarshalJSON(data []byte) error {
+	var arr [2]int
+	if err := json.Unmarshal(data, &arr); err != nil {
+		return fmt.Errorf("ItemRecipe: expected [id, count], got %s: %w", string(data), err)
+	}
+	ir.ID = arr[0]
+	ir.Count = arr[1]
+	return nil
 }
 
 // FoodItem represents an entry of food item, with name and energy value.
