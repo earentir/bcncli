@@ -503,3 +503,73 @@ func GetPetsByCategory(category string) []PetData {
 	}
 	return results
 }
+
+// ItemBoost represents a boost item with its BC worth, effect, and tier.
+type ItemBoost struct {
+	Name   string // Human-readable name
+	Worth  int    // Value in BC, commas removed
+	Effect string // Description of the boost effect
+	Tier   int    // 1 through 6
+}
+
+// AllItemBoosts holds boost items across tiers I–VI.
+var AllItemBoosts = []ItemBoost{
+	// Tier I
+	{"Nautical Compass", 51050, "2× Fish (15m)", 1},
+	{"Ornate Necklace", 50000, "2× Hunt (15m)", 1},
+	{"Painted Totem", 54650, "2× Explore (15m)", 1},
+	{"Ancient Fossil", 50000, "2× Mine (15m)", 1},
+
+	// Tier II
+	{"Fish Finder", 532000, "2× Fish (30m)", 2},
+	{"Sharktooth Necklace", 549600, "2× Hunt (30m)", 2},
+	{"Downy Parka", 546250, "2× Explore (30m)", 2},
+	{"Dowsing Rod", 570000, "2× Mine (30m)", 2},
+
+	// Tier III
+	{"Scout Submarine", 5932300, "2× Fish (1h)", 3},
+	{"Knife Turret", 6010500, "2× Hunt (1h)", 3},
+	{"Survival Kit", 4982350, "2× Explore (1h)", 3},
+	{"Mecha Canary", 5739000, "2× Mine (1h)", 3},
+
+	// Tier IV
+	{"Massive Driftnet", 104424800, "2× Fish (2h)", 4},
+	{"Mutagenic Sludge", 97900000, "2× Hunt (2h)", 4},
+	{"Cursed Charm", 100000000, "2× Explore (2h)", 4},
+	{"Orbital Mining Laser", 104804600, "2× Mine (2h)", 4},
+
+	// Tier V
+	{"Magic Conch", 650000000, "2× Fish (4h)", 5},
+	{"Untamed Spirit", 650000000, "2× Hunt (4h)", 5},
+	{"Seraphic Clasp", 650000000, "2× Explore (4h)", 5},
+	{"Condemned Skull", 650000000, "2× Mine (4h)", 5},
+
+	// Tier VI
+	{"Atlantic Obol", 5000000000, "2× Fish (8h)", 6},
+	{"Hunter's Blind", 5000000000, "2× Hunt (8h)", 6},
+	{"Daoic Seal", 5000000000, "2× Explore (8h)", 6},
+	{"Subterran Crest", 5000000000, "2× Mine (8h)", 6},
+}
+
+// GetBoostByName looks up a boost by name (case-insensitive).
+// Returns a pointer to the ItemBoost and true if found, or nil and false otherwise.
+func GetBoostByName(name string) (*ItemBoost, bool) {
+	for _, b := range AllItemBoosts {
+		if strings.EqualFold(b.Name, name) {
+			return &b, true
+		}
+	}
+	return nil, false
+}
+
+// GetBoostsByTier returns all boosts in the given tier (1–6).
+// If none match, returns an empty slice.
+func GetBoostsByTier(tier int) []ItemBoost {
+	var results []ItemBoost
+	for _, b := range AllItemBoosts {
+		if b.Tier == tier {
+			results = append(results, b)
+		}
+	}
+	return results
+}
