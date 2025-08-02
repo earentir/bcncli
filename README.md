@@ -6,14 +6,13 @@ A fast, ergonomic command‑line client for the **[BConomy](https://bconomy.net)
 
 ---
 
-## Table of Contents
+## Table of Contents
 
 * [Features](#features)
-* [Quick Start](#quick-start)
-
+* [Quick Start](#quick-start)
   * [Installation](#installation)
   * [Configuration](#configuration)
-* [Command Reference](#command-reference)
+* [Command Reference](#command-reference)
 * [Examples](#examples)
 * [Building from Source](#building-from-source)
 * [Shell Completions](#shell-completions)
@@ -23,7 +22,7 @@ A fast, ergonomic command‑line client for the **[BConomy](https://bconomy.net)
 
 ---
 
-## Features
+## Features
 
 | Area             | What you can do                                     |
 | ---------------- | --------------------------------------------------- |
@@ -36,15 +35,14 @@ A fast, ergonomic command‑line client for the **[BConomy](https://bconomy.net)
 | **Logs**         | Tail or export the global event log                 |
 | **Game Data**    | Download full static datasets for offline crunching |
 | **Search**       | Run full‑text searches across any game resource     |
-| ---------------- | --------------------------------------------------- |
 
 `bcncli` is built with [Cobra](https://github.com/spf13/cobra) and [Viper](https://github.com/spf13/viper), so you get familiar flag handling, config files, and shell completions out of the box.
 
 ---
 
-## Quick Start
+##  Quick Start
 
-### Installation
+###  Installation
 
 With Go >= 1.24.2 on your PATH:
 
@@ -55,14 +53,15 @@ $ go install github.com/earentir/bcncli@latest
 
 → The compiled executable will land in `$(go env GOPATH)/bin`. Make sure that directory is in your `PATH`.
 
-### Configuration
+###  Configuration
 
 Every request to the BConomy API needs an **API key**. `bcncli` will look for it in the following order (first win):
 
-1. `--apikey` flag 
-2. `BCONOMYAPI` environment variable 
+1. `--apikey` flag
+2. `BCONOMYAPI` environment variable
 
 > **Tip:**  you can also set the `BCONOMYAPI` environment variable in your shell profile (e.g., `.bashrc`, `.zshrc`) to avoid passing the API key every time.
+
 ```bash
 export BCONOMYAPI={APIKEYHERE}
 ```
@@ -70,13 +69,13 @@ export BCONOMYAPI={APIKEYHERE}
 > **Tip:**  you can also add it to a script then make it exec and finally just source it each time for the current session:
 
 ```bash
-cat <<< "export BCONOMYAPI={APIKEYHERE}" > env.sh; chmod +x env.sh
-source ./env.sh
+cat <<< "export BCONOMYAPI={APIKEYHERE}" > .env
+source .env
 ```
 
 ---
 
-## Command Reference
+##  Command Reference
 
 ```text
 Usage:  bcncli [flags] <command>
@@ -84,11 +83,11 @@ Usage:  bcncli [flags] <command>
 
 | Command       | Description                          |
 | ------------- | ------------------------------------ |
-| `pet`         | Show or list your pets               |
-| `egg`         | Hatch eggs and view egg info         |
-| `profile`     | Display a player profile             |
+| `pet`         | Show pet information                 |
+| `egg`         | Show egg information                 |
+| `profile`      | Display a player profile              |
 | `faction`     | Inspect factions                     |
-| `market`      | List market offers with rich filters |
+| `market`      | List market offers with rich filters  |
 | `leaderboard` | Show top players/factions            |
 | `logs`        | Stream or download server logs       |
 | `gamedata`    | Export BConomy static data           |
@@ -98,13 +97,13 @@ Run `bcncli <command> --help` for the full tree of sub‑commands and options.
 
 ---
 
-## Examples
+##  Examples
 
 | Task                            | Command                                          |
 | ------------------------------- | ------------------------------------------------ |
-| Show your own profile           | `bcncli profile show --user 12345`               |
-| List your pets                  | `bcncli pet list`                                |
-| Hatch an egg                    | `bcncli egg hatch --id 67890`                    |
+| Show your own profile            | `bcncli profile show --user 141964`               |
+| List your pets                  | `bcncli pet owned 141964`                        |
+| List eggs                       | `bcncli egg owned 141964`                        |
 | View potion listings            | `bcncli market list --category "potions"`        |
 | Top 10 players                  | `bcncli leaderboard list --limit 10`             |
 | Last 20 logs                    | `bcncli logs list --limit 20`                    |
@@ -113,20 +112,18 @@ Run `bcncli <command> --help` for the full tree of sub‑commands and options.
 
 ---
 
-## Building from Source
+##  Building from Source
 
 ```bash
 # Clone and build
-$ git clone https://github.com/earentir/bcncli.git
-$ cd bcncli
-$ go build
+$ git clone https://github.com/earentir/bcncli.git;cd bcncli;go build
 ```
 
 The resulting `bcncli` binary is completely static and has **zero runtime dependencies** – ship it anywhere.
 
 ---
 
-## Shell Completions
+##  Shell Completions
 
 Generate shell completions and drop them somewhere on your `PATH`:
 
@@ -142,26 +139,26 @@ Fish and PowerShell completions are also supported – see `bcncli completion --
 
 ---
 
-## Contributing
+##  Contributing
 
 1. Fork this repo and create a feature branch (`git checkout -b feature/my-awesome-thing`)
 2. Commit your changes (`git commit -am 'Add awesome thing'`)
 3. Push and open a pull request – don’t forget to run `go test ./...` and `go vet ./...` first
 
-We ❤️ issues and PRs – even small docs tweaks help.
+I ❤️ issues and PRs – even small docs tweaks help.
 
 ---
 
-## Roadmap
+##  Roadmap
 
 * [ ] Finish all the commands
 * [ ] Native JSON/CSV output selectors (`--output-format`)
 * [ ] CI pipeline with automated builds for Windows/macOS/Linux
 
-Want something else? Open an [issue](https://github.com/earentir/bcncli/issues) and let us know.
+Want something else? Open an [issue](https://github.com/earentir/bcncli/issues) and let me know.
 
 ---
 
-## License
+##  License
 
 `bcncli` is released under the [GNU General Public License v2.0](LICENSE).
