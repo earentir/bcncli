@@ -381,9 +381,9 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 			}
 
 			if fp.Boost.Multiplier > 1 {
-				rowText += fmt.Sprintf(" | Boost x%d | Ends at %d",
+				rowText += fmt.Sprintf(" | Boost x%d | Ends at %s",
 					fp.Boost.Multiplier,
-					fp.Boost.EndTime)
+					common.EpochToISO8601(fp.Boost.EndTime))
 			}
 
 			sw.row(prefix, rowText)
