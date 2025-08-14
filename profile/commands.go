@@ -183,7 +183,7 @@ type Perks struct {
 
 // Settings represents the user's profile settings.
 type Settings struct {
-	ProfileShowStatID     *int          `json:"profileShowStatId"`
+	ProfileShowStatID     string        `json:"profileShowStatId"`
 	Title                 SettingsTitle `json:"title"`
 	SyncDiscordName       bool          `json:"syncDiscordName"`
 	PublicDiscordProfile  bool          `json:"publicDiscordProfile"`
@@ -478,8 +478,8 @@ func renderProfile(p ProfileInfo, filters map[string]bool, sortFlag string) {
 	// Settings
 	if want("settings") {
 		sw.title("Settings")
-		if p.Settings.ProfileShowStatID != nil {
-			sw.row("ProfileShowStatID", strconv.Itoa(*p.Settings.ProfileShowStatID))
+		if p.Settings.ProfileShowStatID != "" {
+			sw.row("ProfileShowStatID", p.Settings.ProfileShowStatID)
 		}
 		sw.row("SyncDiscordName", fmt.Sprintf("%t", p.Settings.SyncDiscordName))
 		sw.row("PublicDiscordProfile", fmt.Sprintf("%t", p.Settings.PublicDiscordProfile))
