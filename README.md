@@ -1,5 +1,7 @@
 # **bcncli**
 
+Archiving since I am not playing the game anymore.
+
 [![Go Version](https://img.shields.io/badge/go-1.24.2-blue?logo=go)](https://go.dev/) [![License](https://img.shields.io/badge/license-GPL--2.0-blue)](LICENSE)
 
 A fast, ergonomic command‑line client for the **[BConomy](https://bconomy.net)** game API. `bcncli` lets you fetch information about pets, eggs, factions, market, and more — all without leaving your terminal.
